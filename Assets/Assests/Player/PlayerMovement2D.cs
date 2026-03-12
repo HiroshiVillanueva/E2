@@ -1,8 +1,8 @@
 using UnityEngine;
 using System.Collections;
-using UnityEngine.UI; // 1. We MUST add this to talk to UI elements!
+using UnityEngine.UI;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(Animator), typeof(SpriteRenderer))] 
+[RequireComponent(typeof(Rigidbody2D), typeof(Animator), typeof(SpriteRenderer))]
 public class PlayerMovement2D : MonoBehaviour
 {
     [Header("Movement Settings")]
@@ -13,9 +13,19 @@ public class PlayerMovement2D : MonoBehaviour
     public float rollForce = 15f; 
     public float rollDuration = 0.4f; 
     public float rollCooldown = 1f; 
+    public float invincibilityIntensity = 0.90f; // How long the player is invincible after rolling
+
+    [Header("Attack Settings")]
+    public float punch1Duration = 0.3f; // Fast punch
+    public float punch2Duration = 0.6f; // Slower, heavier punch
+    public float comboWindow = 1.5f; // How many seconds before the combo resets
+    
+    // NEW: The force and duration of the punch dash
+    public float punchDashForce = 4f; 
+    public float punchDashDuration = 0.1f; 
 
     [Header("UI Elements")]
-    public Image cooldownIndicator; // 2. The slot for our new UI pie chart
+    public Image cooldownIndicator; 
 
     [Header("Ground Detection")]
     public Transform groundCheck;
@@ -29,8 +39,15 @@ public class PlayerMovement2D : MonoBehaviour
     private float horizontalInput;
     private bool isGrounded;
     private bool isFacingRight = true;
+    
     private bool isRolling = false;
     private bool canRoll = true;
+
+    private bool isAttacking = false;
+    // NEW: A tracker for the slide
+    private bool isPunchDashing = false; 
+    private int comboStep = 1; 
+    private float lastAttackTime = 0f; 
 
     void Start()
     {
@@ -41,7 +58,7 @@ public class PlayerMovement2D : MonoBehaviour
 
     void Update()
     {
-        if (isRolling) return; 
+        if (isRolling || isAttacking) return; 
 
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
@@ -53,6 +70,11 @@ public class PlayerMovement2D : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftShift) && canRoll)
         {
             StartCoroutine(PerformRoll());
+        }
+
+        if (Input.GetButtonDown("Fire1") && isGrounded)
+        {
+            StartCoroutine(PerformAttack());
         }
 
         if (horizontalInput > 0 && !isFacingRight)
@@ -67,9 +89,14 @@ public class PlayerMovement2D : MonoBehaviour
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
-        if (!isRolling)
+        if (!isRolling && !isAttacking)
         {
             rb.linearVelocity = new Vector2(horizontalInput * moveSpeed, rb.linearVelocity.y);
+        }
+        // NEW: Only brake if we are attacking AND the tiny dash is over
+        else if (isAttacking && !isPunchDashing)
+        {
+            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y); 
         }
     }
 
@@ -79,6 +106,54 @@ public class PlayerMovement2D : MonoBehaviour
         anim.SetTrigger("Jump");
     }
 
+    private IEnumerator PerformAttack()
+    {
+        isAttacking = true;
+        isPunchDashing = true; // Start the slide!
+
+        if (Time.time - lastAttackTime > comboWindow)
+        {
+            comboStep = 1;
+        }
+
+        // Figure out which way we are facing to apply the force
+        float punchDirection = isFacingRight ? 1f : -1f;
+
+        if (comboStep == 1)
+        {
+            anim.SetTrigger("Punch1");
+            
+            // Apply the dash force using linearVelocity
+            rb.linearVelocity = new Vector2(punchDirection * punchDashForce, rb.linearVelocity.y);
+            
+            // Wait for the slide to finish, then hit the brakes
+            yield return new WaitForSeconds(punchDashDuration);
+            isPunchDashing = false; 
+            
+            // Wait for the REST of the animation to finish
+            yield return new WaitForSeconds(punch1Duration - punchDashDuration); 
+            
+            comboStep = 2; 
+        }
+        else if (comboStep == 2)
+        {
+            anim.SetTrigger("Punch2");
+            
+            // Make Punch 2 step slightly further to make it feel heavier
+            rb.linearVelocity = new Vector2(punchDirection * (punchDashForce * 1.5f), rb.linearVelocity.y);
+            
+            yield return new WaitForSeconds(punchDashDuration);
+            isPunchDashing = false; 
+            
+            yield return new WaitForSeconds(punch2Duration - punchDashDuration); 
+            
+            comboStep = 1; 
+        }
+
+        lastAttackTime = Time.time;
+        isAttacking = false;
+    }
+
     private IEnumerator PerformRoll()
     {
         canRoll = false;
@@ -86,7 +161,7 @@ public class PlayerMovement2D : MonoBehaviour
         anim.SetTrigger("Roll"); 
 
         Color transparentColor = spriteRenderer.color; 
-        transparentColor.a = 0.5f; 
+        transparentColor.a = invincibilityIntensity; // Using your custom variable!
         spriteRenderer.color = transparentColor; 
 
         float rollDirection = isFacingRight ? 1f : -1f;
@@ -100,31 +175,17 @@ public class PlayerMovement2D : MonoBehaviour
 
         isRolling = false;
 
-        // 3. THE NEW COOLDOWN LOGIC
         float cooldownTimer = 0f;
-        
-        // Empty the UI image instantly
-        if (cooldownIndicator != null) 
-            cooldownIndicator.fillAmount = 0f; 
+        if (cooldownIndicator != null) cooldownIndicator.fillAmount = 0f; 
 
-        // Smoothly fill it back up over time
         while (cooldownTimer < rollCooldown)
         {
-            cooldownTimer += Time.deltaTime; // Add the time passed since last frame
-            
-            if (cooldownIndicator != null)
-            {
-                // Calculate percentage (0.0 to 1.0) and apply to UI
-                cooldownIndicator.fillAmount = cooldownTimer / rollCooldown; 
-            }
-            
-            yield return null; // Wait for the next frame before looping again
+            cooldownTimer += Time.deltaTime; 
+            if (cooldownIndicator != null) cooldownIndicator.fillAmount = cooldownTimer / rollCooldown; 
+            yield return null; 
         }
 
-        // Ensure it is completely full and unlock the roll
-        if (cooldownIndicator != null) 
-            cooldownIndicator.fillAmount = 1f; 
-            
+        if (cooldownIndicator != null) cooldownIndicator.fillAmount = 1f; 
         canRoll = true;
     }
 

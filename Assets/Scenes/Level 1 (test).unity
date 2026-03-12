@@ -591,9 +591,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement2D
   moveSpeed: 2
   jumpForce: 4
-  rollForce: 4
+  rollForce: 4.5
   rollDuration: 0.35
-  rollCooldown: 1
+  rollCooldown: 0.5
+  invincibilityIntensity: 0.9
+  punch1Duration: 0.17
+  punch2Duration: 0.25
+  comboWindow: 0.8
+  punchDashForce: 1
+  punchDashDuration: 0.1
   cooldownIndicator: {fileID: 1976626661}
   groundCheck: {fileID: 1373871042}
   groundCheckRadius: 0.05
@@ -2614,7 +2620,7 @@ MonoBehaviour:
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 1
+  m_FillMethod: 4
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
