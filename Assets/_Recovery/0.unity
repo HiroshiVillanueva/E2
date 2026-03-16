@@ -594,6 +594,7 @@ MonoBehaviour:
   rollForce: 4
   rollDuration: 0.35
   rollCooldown: 1
+  cooldownIndicator: {fileID: 0}
   groundCheck: {fileID: 1373871042}
   groundCheckRadius: 0.1
   groundLayer:
