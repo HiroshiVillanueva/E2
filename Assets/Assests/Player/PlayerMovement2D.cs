@@ -13,23 +13,25 @@ public class PlayerMovement2D : MonoBehaviour
     public float rollForce = 15f;
     public float rollDuration = 0.4f;
     public float rollCooldown = 1f;
-    public float invincibilityIntensity = 0.90f; // How long the player is invincible after rolling
+    public float invincibilityIntensity = 0.90f;
 
     [Header("Attack Settings")]
-    public float punch1Duration = 0.3f; // Fast punch
-    public float punch2Duration = 0.6f; // Slower, heavier punch
-    public float comboWindow = 1.5f; // How many seconds before the combo resets
-
-    // The force and duration of the punch dash
+    public float punch1Duration = 0.3f;
+    public float punch2Duration = 0.6f;
+    public float comboWindow = 1.5f;
     public float punchDashForce = 4f;
     public float punchDashDuration = 0.1f;
 
     [Header("Hitbox & Damage Settings")]
-    public Transform attackPoint;      // Drag the empty "AttackPoint" game object here
-    public float attackRange = 0.5f;   // Size of the punch hitbox
-    public LayerMask enemyLayers;      // Set this to "Enemy" in the inspector
-    public float punch1Damage = 10f;   // From your GDD
-    public float punch2Damage = 30f;   // From your GDD
+    public Transform attackPoint;
+    public float attackRange = 0.5f;
+    public LayerMask enemyLayers;
+    public float punch1Damage = 10f;
+    public float punch2Damage = 30f;
+
+    [Header("Audio Settings")]
+    public AudioClip punchMissSound;   // Drag your "Swoosh" sound here
+    public AudioClip punchHitSound;    // Drag your "Smack" sound here
 
     [Header("UI Elements")]
     public Image cooldownIndicator;
@@ -126,42 +128,54 @@ public class PlayerMovement2D : MonoBehaviour
         if (comboStep == 1)
         {
             anim.SetTrigger("Punch1");
-
-            // Apply the dash force
             rb.linearVelocity = new Vector2(punchDirection * punchDashForce, rb.linearVelocity.y);
 
-            // Wait for the slide to finish
-            yield return new WaitForSeconds(punchDashDuration);
-            isPunchDashing = false;
-
-            // --- DETECT ENEMIES FOR PUNCH 1 ---
+            // --- DETECT ENEMIES & PLAY SOUND INSTANTLY ---
             Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
-            foreach (Collider2D enemy in hitEnemies)
+
+            if (hitEnemies.Length > 0)
             {
-                enemy.GetComponent<EnemyHealth>().TakeDamage(punch1Damage);
+                PlayFastSound(punchHitSound); // FIXED: Now uses the fast method!
+                foreach (Collider2D enemy in hitEnemies)
+                {
+                    enemy.GetComponent<EnemyHealth>().TakeDamage(punch1Damage);
+                }
+            }
+            else
+            {
+                PlayFastSound(punchMissSound); // FIXED: Now uses the fast method!
             }
 
-            // Wait for the rest of the animation
+            // --- NOW WAIT FOR THE DASH AND ANIMATION TO FINISH ---
+            yield return new WaitForSeconds(punchDashDuration);
+            isPunchDashing = false;
             yield return new WaitForSeconds(punch1Duration - punchDashDuration);
             comboStep = 2;
         }
         else if (comboStep == 2)
         {
             anim.SetTrigger("Punch2");
-
-            // Apply heavier dash force
             rb.linearVelocity = new Vector2(punchDirection * (punchDashForce * 1.5f), rb.linearVelocity.y);
 
-            yield return new WaitForSeconds(punchDashDuration);
-            isPunchDashing = false;
-
-            // --- DETECT ENEMIES FOR PUNCH 2 ---
+            // --- DETECT ENEMIES & PLAY SOUND INSTANTLY ---
             Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
-            foreach (Collider2D enemy in hitEnemies)
+
+            if (hitEnemies.Length > 0)
             {
-                enemy.GetComponent<EnemyHealth>().TakeDamage(punch2Damage);
+                PlayFastSound(punchHitSound); // Uses the fast method
+                foreach (Collider2D enemy in hitEnemies)
+                {
+                    enemy.GetComponent<EnemyHealth>().TakeDamage(punch2Damage); // FIXED: Now deals punch 2 damage!
+                }
+            }
+            else
+            {
+                PlayFastSound(punchMissSound); // Uses the fast method
             }
 
+            // --- NOW WAIT FOR THE DASH AND ANIMATION TO FINISH ---
+            yield return new WaitForSeconds(punchDashDuration);
+            isPunchDashing = false;
             yield return new WaitForSeconds(punch2Duration - punchDashDuration);
             comboStep = 1;
         }
@@ -228,11 +242,30 @@ public class PlayerMovement2D : MonoBehaviour
             Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
 
-        // Draw the Attack Hitbox in the editor so you can see it
         if (attackPoint != null)
         {
             Gizmos.color = Color.blue;
             Gizmos.DrawWireSphere(attackPoint.position, attackRange);
         }
+    }
+
+    private void PlayFastSound(AudioClip clip)
+    {
+        if (clip == null) return;
+
+        // Create an invisible, temporary speaker
+        GameObject tempAudio = new GameObject("FastPunchSound");
+        tempAudio.transform.position = Camera.main.transform.position;
+
+        AudioSource source = tempAudio.AddComponent<AudioSource>();
+        source.clip = clip;
+
+        // THIS IS THE SPEED CONTROL! 2f = 2x faster (and higher pitch)
+        source.pitch = 2f;
+
+        source.Play();
+
+        // Destroy the speaker exactly when the sped-up clip finishes
+        Destroy(tempAudio, clip.length / source.pitch);
     }
 }

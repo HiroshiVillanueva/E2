@@ -42,6 +42,13 @@ public class EnemyHealth : MonoBehaviour
     private void Die()
     {
         Debug.Log(gameObject.name + " has been defeated!");
+
+        // TELL THE UI MANAGER TO ADD A KILL!
+        if (UIManager.instance != null)
+        {
+            UIManager.instance.AddKill();
+        }
+
         Destroy(gameObject);
     }
 }
