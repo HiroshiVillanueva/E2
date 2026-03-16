@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI; // Required for Slider
-
+using TMPro; // This tells Unity we want to use TextMeshPro!
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Health Settings")]
@@ -9,6 +9,9 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("UI Elements")]
     public Slider healthSlider; // Now we use a Slider instead of an Image
+
+    [Header("UI Elements")]
+    public TextMeshProUGUI hpText; // This will hold our text on the screen
 
     void Start()
     {
@@ -32,6 +35,11 @@ public class PlayerHealth : MonoBehaviour
         if (currentHealth <= 0)
         {
             Die();
+        }
+        if (hpText != null)
+        {
+            // The "0" formatting makes sure you don't get ugly decimals like HP: 89.9999
+            hpText.text = "HP: " + currentHealth.ToString("0");
         }
     }
 
