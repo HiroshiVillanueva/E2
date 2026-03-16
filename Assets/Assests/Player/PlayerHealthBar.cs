@@ -57,12 +57,4 @@ public class PlayerHealth : MonoBehaviour
         Debug.Log("Player has been defeated!");
     }
 
-    // Temporary test using the Spacebar
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            TakeDamage(10f);
-        }
-    }
 }
