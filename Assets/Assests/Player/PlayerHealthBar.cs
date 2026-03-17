@@ -1,32 +1,41 @@
 using UnityEngine;
-using UnityEngine.UI; // Required for Slider
-using TMPro; // This tells Unity we want to use TextMeshPro!
+using UnityEngine.UI;
+using TMPro; 
+
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Health Settings")]
     public float maxHealth = 100f;
     private float currentHealth;
+    
+    private bool isDead = false; 
 
     [Header("UI Elements")]
-    public Slider healthSlider; // Now we use a Slider instead of an Image
+    public Slider healthSlider; 
+    public TextMeshProUGUI hpText; 
 
-    [Header("UI Elements")]
-    public TextMeshProUGUI hpText; // This will hold our text on the screen
+    private Animator anim; 
+    private PlayerMovement2D movementScript;
 
     void Start()
     {
         currentHealth = maxHealth;
+        anim = GetComponent<Animator>(); 
+        movementScript = GetComponent<PlayerMovement2D>(); 
 
-        // Ensure the slider matches our health stats at the start
-        if (healthSlider != null)
-        {
-            healthSlider.maxValue = maxHealth;
-            healthSlider.value = currentHealth;
-        }
+        UpdateHealthBar();
     }
 
-    public void TakeDamage(float damageAmount)
+    public void TakeDamage(float damageAmount, Transform attacker)
     {
+        if (isDead) return; 
+
+        // UPDATED: Now we ignore damage if rolling OR if the hurt i-frames are active!
+        if (movementScript != null && (movementScript.isRolling || movementScript.isInvincible)) 
+        {
+            return; 
+        }
+
         currentHealth -= damageAmount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
@@ -36,15 +45,22 @@ public class PlayerHealth : MonoBehaviour
         {
             Die();
         }
-        if (hpText != null)
+        else
         {
-            // The "0" formatting makes sure you don't get ugly decimals like HP: 89.9999
-            hpText.text = "HP: " + currentHealth.ToString("0");
+            if (anim != null) anim.SetTrigger("Hurt");
+            
+            // UPDATED: Call the new Flicker and Knockback sequence!
+            if (movementScript != null)
+            {
+                StartCoroutine(movementScript.HurtSequence(attacker));
+            }
         }
     }
 
     public void Heal(float healAmount)
     {
+        if (isDead) return;
+
         currentHealth += healAmount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
@@ -53,16 +69,29 @@ public class PlayerHealth : MonoBehaviour
 
     private void UpdateHealthBar()
     {
-        // Directly set the slider's value to the current health
         if (healthSlider != null)
         {
+            healthSlider.maxValue = maxHealth;
             healthSlider.value = currentHealth;
+        }
+
+        if (hpText != null)
+        {
+            hpText.text = "HP: " + currentHealth.ToString("0");
         }
     }
 
     private void Die()
     {
+        isDead = true; 
+        
+        if (anim != null) anim.SetTrigger("Death"); 
+        
         Debug.Log("Player has been defeated!");
-    }
 
+        if (movementScript != null)
+        {
+            movementScript.enabled = false; 
+        }
+    }
 }

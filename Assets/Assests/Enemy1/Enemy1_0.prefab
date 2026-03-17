@@ -339,8 +339,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.638, y: 0.313, z: 0}
-  m_LocalScale: {x: 0.4868, y: 0.5933, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3772288630176477345}
   - {fileID: 1982371181317999423}
@@ -403,7 +403,7 @@ SpriteRenderer:
   m_Size: {x: 0.48, y: 0.48}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!95 &3607912329995453979
 Animator:
@@ -515,8 +515,12 @@ MonoBehaviour:
   patrolSpeed: 1
   chaseSpeed: 1.5
   patrolDistance: 1
+  knockbackForceX: 0.8
+  knockbackForceY: 0.8
+  knockbackDuration: 0.2
   stopDistance: 0.8
   sightRange: 1.5
+  isKnockedBack: 0
 --- !u!114 &394895609158491746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -532,12 +536,16 @@ MonoBehaviour:
   player: {fileID: 0}
   attackDistance: 1.5
   attackPoint: {fileID: 3772288630176477345}
-  attackRadius: 0.25
+  attackRadius: 0.5
   playerLayer:
     serializedVersion: 2
     m_Bits: 8
   damageAmount: 10
   attackCooldown: 2
+  dealContactDamage: 1
+  contactRadius: 0.2
+  contactDamageAmount: 5
+  contactCooldown: 1
   electricColor: {r: 0, g: 1, b: 1, a: 1}
   electricEffectPrefab: {fileID: 6953507048375216493, guid: 5826d2ccbd47ae64ba21fb8d8e875177, type: 3}
 --- !u!114 &3366671884447191502

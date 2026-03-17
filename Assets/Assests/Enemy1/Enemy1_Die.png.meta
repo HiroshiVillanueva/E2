@@ -1,28 +1,67 @@
 fileFormatVersion: 2
-guid: 4c275d354a5e9e94b8dd23efdeb6f9d8
+guid: b918819ad6c2b714d89eb2dc489630bd
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -853551304693721389
-    second: Enemy1 (2)_0
+      213: 7129713276087091236
+    second: Enemy1_Die_0
   - first:
-      213: 510935980859502242
-    second: Enemy1 (2)_1
+      213: -6422190890104111857
+    second: Enemy1_Die_1
   - first:
-      213: 530619345624172160
-    second: Enemy1 (2)_2
+      213: -5883430854862715029
+    second: Enemy1_Die_2
   - first:
-      213: -2730018867923346664
-    second: Enemy1 (2)_3
+      213: 617637926786191080
+    second: Enemy1_Die_3
   - first:
-      213: -3186852069164222156
-    second: Enemy1 (2)_4
+      213: 8069237372958308483
+    second: Enemy1_Die_4
   - first:
-      213: 5208788554161821160
-    second: Enemy1 (2)_5
+      213: 2295898636872279572
+    second: Enemy1_Die_5
   - first:
-      213: 2090268483333827394
-    second: Enemy1 (2)_6
+      213: -4347919598657670375
+    second: Enemy1_Die_6
+  - first:
+      213: -2380096249719097194
+    second: Enemy1_Die_7
+  - first:
+      213: 2309542373070376624
+    second: Enemy1_Die_8
+  - first:
+      213: -3956847714568663766
+    second: Enemy1_Die_9
+  - first:
+      213: 3901052255963111197
+    second: Enemy1_Die_10
+  - first:
+      213: 5784341160119687633
+    second: Enemy1_Die_11
+  - first:
+      213: -2759027242664012210
+    second: Enemy1_Die_12
+  - first:
+      213: 8641642996167123445
+    second: Enemy1_Die_13
+  - first:
+      213: -4340707484949094130
+    second: Enemy1_Die_14
+  - first:
+      213: -2278923088748238674
+    second: Enemy1_Die_15
+  - first:
+      213: 6471931381139507681
+    second: Enemy1_Die_16
+  - first:
+      213: 279929570697831922
+    second: Enemy1_Die_17
+  - first:
+      213: -1376874868901190777
+    second: Enemy1_Die_18
+  - first:
+      213: 9111033894690627323
+    second: Enemy1_Die_19
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -118,7 +157,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Enemy1_0
+      name: Enemy1_Die_0
       rect:
         serializedVersion: 2
         x: 0
@@ -131,16 +170,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 758ecf455151d3a4ea3150092ea8aaa8
-      internalID: 643490890
+      spriteID: 420ce832374d1f260800000000000000
+      internalID: 7129713276087091236
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Enemy1_1
+      name: Enemy1_Die_1
       rect:
         serializedVersion: 2
         x: 48
@@ -153,16 +192,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 6cd97e432af86094a820b43e357cbd44
-      internalID: 1191693805
+      spriteID: f0d3893696bcfd6a0800000000000000
+      internalID: -6422190890104111857
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Enemy1_2
+      name: Enemy1_Die_2
       rect:
         serializedVersion: 2
         x: 96
@@ -175,16 +214,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: d2b3d7d5be0f1d7468ea69212cc21c79
-      internalID: 674461646
+      spriteID: b67c55b2fcad95ea0800000000000000
+      internalID: -5883430854862715029
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Enemy1_3
+      name: Enemy1_Die_3
       rect:
         serializedVersion: 2
         x: 144
@@ -197,16 +236,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 57db48f342aa869448245ffb970fa2e5
-      internalID: -1510398808
+      spriteID: 8ee46e90c6a429800800000000000000
+      internalID: 617637926786191080
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Enemy1_4
+      name: Enemy1_Die_4
       rect:
         serializedVersion: 2
         x: 192
@@ -219,16 +258,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 40d935f2b3d857e49bf8321ea5ff982a
-      internalID: 852387560
+      spriteID: 3887c7753a0bbff60800000000000000
+      internalID: 8069237372958308483
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Enemy1_5
+      name: Enemy1_Die_5
       rect:
         serializedVersion: 2
         x: 240
@@ -243,30 +282,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f69bd99113d3d90498a9d3197e0b94e1
-      internalID: 398439008
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Enemy1_6
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 0
-        width: 48
-        height: 48
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 650ee7cff0e18254fb6c5fdd0f690aed
-      internalID: -1459556278
+      spriteID: f083aad02b7d72d49a5ae4d0a2f521ce
+      internalID: 672839726
       vertices: []
       indices: 
       edges: []
@@ -275,7 +292,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 6db1899d40e520649b8c36b5d88dec38
+    spriteID: c68f789f63114d546acbc0df2b26a17b
     internalID: 0
     vertices: []
     indices: 
@@ -285,15 +302,14 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":48.0,"y":48.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":6.0,"y":1.0},"gridSpriteSize":{"x":48.0,"y":48.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":true,"isAlternate":false}'
     nameFileIdTable:
-      Enemy1_0: 643490890
-      Enemy1_1: 1191693805
-      Enemy1_2: 674461646
-      Enemy1_3: -1510398808
-      Enemy1_4: 852387560
-      Enemy1_5: 398439008
-      Enemy1_6: -1459556278
+      Enemy1_Die_0: 7129713276087091236
+      Enemy1_Die_1: -6422190890104111857
+      Enemy1_Die_2: -5883430854862715029
+      Enemy1_Die_3: 617637926786191080
+      Enemy1_Die_4: 8069237372958308483
+      Enemy1_Die_5: 672839726
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

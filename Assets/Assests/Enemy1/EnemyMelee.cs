@@ -10,10 +10,18 @@ public class EnemyMelee : MonoBehaviour
 
     [Header("Melee Settings")]
     public Transform attackPoint;
-    public float attackRadius = 0.5f;
+    public float attackRadius = 0.75f;
     public LayerMask playerLayer;
     public float damageAmount = 10f;
-    public float attackCooldown = 2f;
+    public float attackCooldown = 1f;
+
+    // --- NEW: Contact Damage Settings (Always Active Aura) ---
+    [Header("Contact Damage")]
+    public bool dealContactDamage = true; 
+    public float contactRadius = 0.4f; // Adjust this in the Inspector to fit the enemy's body!
+    public float contactDamageAmount = 5f; 
+    public float contactCooldown = 1f; 
+    private float nextContactTime = 0f;
 
     [Header("Visual Effects")]
     public Color electricColor = Color.cyan;
@@ -24,11 +32,13 @@ public class EnemyMelee : MonoBehaviour
     private float nextAttackTime = 0f;
     private EnemyPatrol patrolScript;
     private Rigidbody2D rb;
+    private Animator anim;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         patrolScript = GetComponent<EnemyPatrol>();
+        anim = GetComponent<Animator>(); 
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
@@ -36,7 +46,6 @@ public class EnemyMelee : MonoBehaviour
             originalColor = spriteRenderer.color;
         }
 
-        // Automatically find the player by their tag!
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -46,52 +55,69 @@ public class EnemyMelee : MonoBehaviour
 
     void Update()
     {
-        if (player == null) return;
+        if (player == null || (patrolScript != null && patrolScript.isKnockedBack)) return;
 
-        // Check how close the player is
+        // 1. ALWAYS check for body contact damage first!
+        if (dealContactDamage && Time.time >= nextContactTime)
+        {
+            CheckContactDamage();
+        }
+
+        // 2. Then check if we are close enough to do the full Melee Punch
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-        // If the player is close enough, and the cooldown is ready, ATTACK!
         if (distanceToPlayer <= attackDistance && Time.time >= nextAttackTime)
         {
             StartCoroutine(PerformMeleeAttack());
         }
     }
 
+    // --- NEW: The Silent Damage Check (Replaces OnCollisionStay2D) ---
+    private void CheckContactDamage()
+    {
+        // Draw an invisible circle around the enemy's CENTER point (transform.position)
+        Collider2D[] hitPlayers = Physics2D.OverlapCircleAll(transform.position, contactRadius, playerLayer);
+        
+        foreach (Collider2D hit in hitPlayers)
+        {
+            PlayerHealth playerHealth = hit.GetComponentInParent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                // Damage them and push them back, but do NOT stop the enemy from walking!
+                playerHealth.TakeDamage(contactDamageAmount, transform);
+                nextContactTime = Time.time + contactCooldown; 
+            }
+        }
+    }
+
     private IEnumerator PerformMeleeAttack()
     {
-        // Reset the cooldown timer
         nextAttackTime = Time.time + attackCooldown;
 
-        // Stop the enemy from walking while it attacks
         if (patrolScript != null) patrolScript.enabled = false;
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
 
-        // Turn the monitor blue/yellow while it winds up
         if (spriteRenderer != null) spriteRenderer.color = electricColor;
+        
+        if (anim != null) anim.SetTrigger("Attack");
 
-        // Wait a tiny bit for the "wind up" 
         yield return new WaitForSeconds(0.2f);
 
-        // SPAWN THE ELECTRIC SHOCK GRAPHIC
         if (electricEffectPrefab != null && attackPoint != null)
         {
             GameObject shockVFX = Instantiate(electricEffectPrefab, attackPoint.position, Quaternion.identity);
             Destroy(shockVFX, 0.3f);
         }
 
-        // Detect if the player actually got hit
         Collider2D[] hitPlayers = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, playerLayer);
         foreach (Collider2D hit in hitPlayers)
         {
-            // Try to find the PlayerHealth script on the player and damage them
             PlayerHealth playerHealth = hit.GetComponentInParent<PlayerHealth>();
             if (playerHealth != null)
             {
-                playerHealth.TakeDamage(damageAmount);
+                playerHealth.TakeDamage(damageAmount, transform);
             }
 
-            // Grab the Player's SpriteRenderer to change their color
             SpriteRenderer playerSprite = hit.GetComponentInParent<SpriteRenderer>();
             if (playerSprite != null)
             {
@@ -99,35 +125,23 @@ public class EnemyMelee : MonoBehaviour
             }
         }
 
-        // Wait for the punch animation to finish
         yield return new WaitForSeconds(0.5f);
 
-        // Return monitor to its normal color and let it walk again
         if (spriteRenderer != null) spriteRenderer.color = originalColor;
         if (patrolScript != null) patrolScript.enabled = true;
     }
 
-    // New Coroutine to handle the player's 1-second electric flash
     private IEnumerator ElectrifyPlayerHit(SpriteRenderer playerSprite)
     {
-        // We hardcode the reset color to white (the default for Unity sprites)
-        // so we don't accidentally save the cyan color if the player gets hit twice quickly!
         Color normalColor = Color.white;
-
-        // Turn the player cyan/electric
         playerSprite.color = electricColor;
-
-        // Keep them electric for exactly 1 second
-        yield return new WaitForSeconds(1f);
-
-        // Make sure the player hasn't been destroyed (e.g., if they died) before changing back
+        yield return new WaitForSeconds(0.2f);
         if (playerSprite != null)
         {
             playerSprite.color = normalColor;
         }
     }
 
-    // Draws a red circle in the Scene view so you can see the punch range!
     private void OnDrawGizmosSelected()
     {
         if (attackPoint != null)
@@ -135,5 +149,15 @@ public class EnemyMelee : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(attackPoint.position, attackRadius);
         }
+
+        // Draw the new body contact range in yellow!
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, contactRadius);
+    }
+
+    public void ResetMelee()
+    {
+        if (spriteRenderer != null) spriteRenderer.color = originalColor;
+        if (patrolScript != null) patrolScript.enabled = true;
     }
 }

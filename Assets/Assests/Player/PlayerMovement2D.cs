@@ -9,6 +9,13 @@ public class PlayerMovement2D : MonoBehaviour
     public float moveSpeed = 8f;
     public float jumpForce = 12f;
 
+    [Header("Hurt & Knockback Settings")]
+    public float knockbackForceX = 5f;
+    public float knockbackForceY = 5f;
+    public float knockbackDuration = 0.2f; // How long inputs are locked
+    public float iFrameDuration = 1.5f; // NEW: How long they are invincible/flickering
+    public float flickerInterval = 0.1f; // NEW: How fast they flash
+
     [Header("Roll Settings")]
     public float rollForce = 15f;
     public float rollDuration = 0.4f;
@@ -30,8 +37,8 @@ public class PlayerMovement2D : MonoBehaviour
     public float punch2Damage = 30f;
 
     [Header("Audio Settings")]
-    public AudioClip punchMissSound;   // Drag your "Swoosh" sound here
-    public AudioClip punchHitSound;    // Drag your "Smack" sound here
+    public AudioClip punchMissSound;
+    public AudioClip punchHitSound;
 
     [Header("UI Elements")]
     public Image cooldownIndicator;
@@ -49,9 +56,11 @@ public class PlayerMovement2D : MonoBehaviour
     private bool isGrounded;
     private bool isFacingRight = true;
 
-    private bool isRolling = false;
-    private bool canRoll = true;
+    public bool isRolling = false;
+    public bool isKnockedBack = false;
+    public bool isInvincible = false; // NEW: The i-frame safety switch!
 
+    private bool canRoll = true;
     private bool isAttacking = false;
     private bool isPunchDashing = false;
     private int comboStep = 1;
@@ -66,9 +75,15 @@ public class PlayerMovement2D : MonoBehaviour
 
     void Update()
     {
-        if (isRolling || isAttacking) return;
+        // Inputs remain locked during the knockback stun!
+        if (isKnockedBack || isRolling || isAttacking) return;
 
         horizontalInput = Input.GetAxisRaw("Horizontal");
+
+        if (horizontalInput > 0 && !isFacingRight)
+            Flip();
+        else if (horizontalInput < 0 && isFacingRight)
+            Flip();
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
@@ -85,11 +100,6 @@ public class PlayerMovement2D : MonoBehaviour
             StartCoroutine(PerformAttack());
         }
 
-        if (horizontalInput > 0 && !isFacingRight)
-            Flip();
-        else if (horizontalInput < 0 && isFacingRight)
-            Flip();
-
         UpdateAnimator();
     }
 
@@ -97,13 +107,16 @@ public class PlayerMovement2D : MonoBehaviour
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
-        if (!isRolling && !isAttacking)
+        if (!isKnockedBack)
         {
-            rb.linearVelocity = new Vector2(horizontalInput * moveSpeed, rb.linearVelocity.y);
-        }
-        else if (isAttacking && !isPunchDashing)
-        {
-            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+            if (!isRolling && !isAttacking)
+            {
+                rb.linearVelocity = new Vector2(horizontalInput * moveSpeed, rb.linearVelocity.y);
+            }
+            else if (isAttacking && !isPunchDashing)
+            {
+                rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+            }
         }
     }
 
@@ -129,24 +142,7 @@ public class PlayerMovement2D : MonoBehaviour
         {
             anim.SetTrigger("Punch1");
             rb.linearVelocity = new Vector2(punchDirection * punchDashForce, rb.linearVelocity.y);
-
-            // --- DETECT ENEMIES & PLAY SOUND INSTANTLY ---
-            Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
-
-            if (hitEnemies.Length > 0)
-            {
-                PlayFastSound(punchHitSound); // FIXED: Now uses the fast method!
-                foreach (Collider2D enemy in hitEnemies)
-                {
-                    enemy.GetComponent<EnemyHealth>().TakeDamage(punch1Damage);
-                }
-            }
-            else
-            {
-                PlayFastSound(punchMissSound); // FIXED: Now uses the fast method!
-            }
-
-            // --- NOW WAIT FOR THE DASH AND ANIMATION TO FINISH ---
+            CheckHitbox(punch1Damage); 
             yield return new WaitForSeconds(punchDashDuration);
             isPunchDashing = false;
             yield return new WaitForSeconds(punch1Duration - punchDashDuration);
@@ -154,34 +150,49 @@ public class PlayerMovement2D : MonoBehaviour
         }
         else if (comboStep == 2)
         {
-            anim.SetTrigger("Punch2");
+            anim.SetTrigger("Punch1"); 
+            rb.linearVelocity = new Vector2(punchDirection * punchDashForce, rb.linearVelocity.y);
+            CheckHitbox(punch1Damage); 
+            yield return new WaitForSeconds(punchDashDuration);
+            isPunchDashing = false;
+            yield return new WaitForSeconds(punch1Duration - punchDashDuration);
+            comboStep = 3;
+        }
+        else if (comboStep == 3)
+        {
+            anim.SetTrigger("Punch2"); 
             rb.linearVelocity = new Vector2(punchDirection * (punchDashForce * 1.5f), rb.linearVelocity.y);
-
-            // --- DETECT ENEMIES & PLAY SOUND INSTANTLY ---
-            Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
-
-            if (hitEnemies.Length > 0)
-            {
-                PlayFastSound(punchHitSound); // Uses the fast method
-                foreach (Collider2D enemy in hitEnemies)
-                {
-                    enemy.GetComponent<EnemyHealth>().TakeDamage(punch2Damage); // FIXED: Now deals punch 2 damage!
-                }
-            }
-            else
-            {
-                PlayFastSound(punchMissSound); // Uses the fast method
-            }
-
-            // --- NOW WAIT FOR THE DASH AND ANIMATION TO FINISH ---
+            CheckHitbox(punch2Damage); 
             yield return new WaitForSeconds(punchDashDuration);
             isPunchDashing = false;
             yield return new WaitForSeconds(punch2Duration - punchDashDuration);
-            comboStep = 1;
+            comboStep = 1; 
         }
 
         lastAttackTime = Time.time;
         isAttacking = false;
+    }
+
+    private void CheckHitbox(float damageAmount)
+    {
+        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
+
+        if (hitEnemies.Length > 0)
+        {
+            PlayFastSound(punchHitSound); 
+            foreach (Collider2D enemy in hitEnemies)
+            {
+                var enemyHealth = enemy.GetComponent<EnemyHealth>();
+                if (enemyHealth != null)
+                {
+                    enemyHealth.TakeDamage(damageAmount, transform);
+                }
+            }
+        }
+        else
+        {
+            PlayFastSound(punchMissSound); 
+        }
     }
 
     private IEnumerator PerformRoll()
@@ -219,6 +230,45 @@ public class PlayerMovement2D : MonoBehaviour
         canRoll = true;
     }
 
+    // NEW: The complete Hurt Sequence (Replaces ApplyKnockback)
+    public IEnumerator HurtSequence(Transform attacker)
+    {
+        isKnockedBack = true; // Locks the controls
+        isInvincible = true;  // Grants i-frames
+
+        // 1. Apply the physical pop backwards
+        float knockbackDirection = 1f;
+        if (transform.position.x < attacker.position.x)
+        {
+            knockbackDirection = -1f; 
+        }
+        rb.linearVelocity = new Vector2(knockbackForceX * knockbackDirection, knockbackForceY);
+
+        // 2. Start the Flicker loop
+        float elapsedTime = 0f;
+        while (elapsedTime < iFrameDuration)
+        {
+            // Toggle the sprite on and off
+            spriteRenderer.enabled = !spriteRenderer.enabled;
+            
+            // Wait for a split second
+            yield return new WaitForSeconds(flickerInterval);
+            elapsedTime += flickerInterval;
+
+            // 3. Unlock the controls early!
+            // Once the physical stun duration ends, let the player move again (even while they are still flashing)
+            if (elapsedTime >= knockbackDuration)
+            {
+                isKnockedBack = false;
+            }
+        }
+
+        // 4. Clean up and restore everything
+        spriteRenderer.enabled = true; // Guarantee they are visible at the end
+        isInvincible = false;
+        isKnockedBack = false; 
+    }
+
     private void UpdateAnimator()
     {
         anim.SetFloat("Speed", Mathf.Abs(horizontalInput));
@@ -253,19 +303,14 @@ public class PlayerMovement2D : MonoBehaviour
     {
         if (clip == null) return;
 
-        // Create an invisible, temporary speaker
         GameObject tempAudio = new GameObject("FastPunchSound");
         tempAudio.transform.position = Camera.main.transform.position;
 
         AudioSource source = tempAudio.AddComponent<AudioSource>();
         source.clip = clip;
-
-        // THIS IS THE SPEED CONTROL! 2f = 2x faster (and higher pitch)
         source.pitch = 2f;
-
         source.Play();
 
-        // Destroy the speaker exactly when the sped-up clip finishes
         Destroy(tempAudio, clip.length / source.pitch);
     }
 }

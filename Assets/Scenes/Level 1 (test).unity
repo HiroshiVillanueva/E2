@@ -760,32 +760,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40da0203b07439145a91172c26690cdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement2D
-  moveSpeed: 1.5
+  moveSpeed: 1.75
   jumpForce: 4
+  knockbackForceX: 1.25
+  knockbackForceY: 1
+  knockbackDuration: 0.2
+  iFrameDuration: 1.5
+  flickerInterval: 0.1
   rollForce: 4.5
   rollDuration: 0.35
   rollCooldown: 0.5
   invincibilityIntensity: 0.9
-  punch1Duration: 0.17
+  punch1Duration: 0.18
   punch2Duration: 0.25
-  comboWindow: 0.8
+  comboWindow: 0.19
   punchDashForce: 1
   punchDashDuration: 0.1
   attackPoint: {fileID: 515761669}
-  attackRange: 0.1
+  attackRange: 0.5
   enemyLayers:
     serializedVersion: 2
     m_Bits: 128
-  punch1Damage: 5
-  punch2Damage: 10
-  punchMissSound: {fileID: 8300000, guid: 8c659ab012a288243ba4248d49aa7205, type: 3}
-  punchHitSound: {fileID: 8300000, guid: 8246532a5f2a3a64c8105d3b7abce2b9, type: 3}
+  punch1Damage: 10
+  punch2Damage: 30
+  punchMissSound: {fileID: 0}
+  punchHitSound: {fileID: 0}
   cooldownIndicator: {fileID: 1976626661}
   groundCheck: {fileID: 1373871042}
   groundCheckRadius: 0.05
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
+  isRolling: 0
+  isKnockedBack: 0
+  isInvincible: 0
 --- !u!114 &320708055
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1997,7 +2005,7 @@ MonoBehaviour:
   - {fileID: 325875755}
   - {fileID: 119541300}
   maxEnemies: 6
-  timeBetweenSpawns: 10
+  timeBetweenSpawns: 5
 --- !u!1 &783327799
 GameObject:
   m_ObjectHideFlags: 0
@@ -4077,6 +4085,38 @@ PrefabInstance:
       propertyPath: player
       value: 
       objectReference: {fileID: 320708050}
+    - target: {fileID: 394895609158491746, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: contactRadius
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 394895609158491746, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: attackCooldown
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1629302704531789410, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: knockbackForceX
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1629302704531789410, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: knockbackForceY
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1629302704531789410, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: knockbackDuration
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1653633484742510982, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1653633484742510982, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1653633484742510982, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1653633484742510982, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.638
@@ -4117,6 +4157,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1653633484742510982, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1843979757904800972, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -4124,6 +4168,14 @@ PrefabInstance:
     - target: {fileID: 1843979757904800972, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5595914939521155182, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -1752326060616780175, guid: 1012f46635724404bb499808ec43716e, type: 3}
+    - target: {fileID: 5595914939521155182, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8639183265473025250, guid: 638a538cf9428f249b5cf3acbf5d03f6, type: 3}
       propertyPath: m_Name
