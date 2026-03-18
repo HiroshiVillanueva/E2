@@ -1,39 +1,57 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro; 
+using TMPro;
+using UnityEngine.SceneManagement; // NEW: Required to restart the game!
+
+/* * A. Functionality: Manages the player's health, updates the UI slider and text, handles saving/loading health between scenes, and restarts the game on death.
+ * B. New component & functionality learned: Learned how to use PlayerPrefs to save health across scenes, and SceneManager to reload the game.
+ * C. Problems encountered: The death animation wouldn't play if the scene restarted instantly.
+ * D. What you have tried / not tried: I added a Coroutine delay (ReloadGameAfterDeath) before loading Scene 0 so the player can actually see the death animation finish before the game resets.
+ * E. Other important developer notes: Make sure Scene 1 (Title Screen) is at Index 0 in Build Settings!
+ */
 
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Health Settings")]
     public float maxHealth = 100f;
     private float currentHealth;
-    
-    private bool isDead = false; 
+
+    private bool isDead = false;
 
     [Header("UI Elements")]
-    public Slider healthSlider; 
-    public TextMeshProUGUI hpText; 
+    public Slider healthSlider;
+    public TextMeshProUGUI hpText;
 
-    private Animator anim; 
+    private Animator anim;
     private PlayerMovement2D movementScript;
 
     void Start()
     {
-        currentHealth = maxHealth;
-        anim = GetComponent<Animator>(); 
-        movementScript = GetComponent<PlayerMovement2D>(); 
+        anim = GetComponent<Animator>();
+        movementScript = GetComponent<PlayerMovement2D>();
+
+        // CHECK FOR SAVED HEALTH FROM THE PREVIOUS LEVEL
+        if (PlayerPrefs.HasKey("SavedHealth"))
+        {
+            currentHealth = PlayerPrefs.GetFloat("SavedHealth");
+        }
+        else
+        {
+            // If there is no saved health (like starting a new game), start at max
+            currentHealth = maxHealth;
+        }
 
         UpdateHealthBar();
     }
 
     public void TakeDamage(float damageAmount, Transform attacker)
     {
-        if (isDead) return; 
+        if (isDead) return;
 
-        // UPDATED: Now we ignore damage if rolling OR if the hurt i-frames are active!
-        if (movementScript != null && (movementScript.isRolling || movementScript.isInvincible)) 
+        // Ignore damage if rolling OR if the hurt i-frames are active!
+        if (movementScript != null && (movementScript.isRolling || movementScript.isInvincible))
         {
-            return; 
+            return;
         }
 
         currentHealth -= damageAmount;
@@ -48,8 +66,8 @@ public class PlayerHealth : MonoBehaviour
         else
         {
             if (anim != null) anim.SetTrigger("Hurt");
-            
-            // UPDATED: Call the new Flicker and Knockback sequence!
+
+            // Call the Flicker and Knockback sequence!
             if (movementScript != null)
             {
                 StartCoroutine(movementScript.HurtSequence(attacker));
@@ -69,29 +87,56 @@ public class PlayerHealth : MonoBehaviour
 
     private void UpdateHealthBar()
     {
+        // Updates the visual bar
         if (healthSlider != null)
         {
             healthSlider.maxValue = maxHealth;
             healthSlider.value = currentHealth;
         }
 
+        // Updates the text
         if (hpText != null)
         {
             hpText.text = "HP: " + currentHealth.ToString("0");
         }
     }
 
+    // THE EXIT DOOR WILL CALL THIS BEFORE CHANGING SCENES
+    public void SaveHealthForNextScene()
+    {
+        PlayerPrefs.SetFloat("SavedHealth", currentHealth);
+        PlayerPrefs.Save();
+        Debug.Log("Health saved at: " + currentHealth);
+    }
+
     private void Die()
     {
-        isDead = true; 
-        
-        if (anim != null) anim.SetTrigger("Death"); 
-        
+        isDead = true;
+
+        if (anim != null) anim.SetTrigger("Death");
+
         Debug.Log("Player has been defeated!");
 
         if (movementScript != null)
         {
-            movementScript.enabled = false; 
+            movementScript.enabled = false;
         }
+
+        // Start the timer to reload the game so the death animation has time to play
+        StartCoroutine(ReloadGameAfterDeath());
+    }
+
+    // NEW: Coroutine to delay the scene load
+    private System.Collections.IEnumerator ReloadGameAfterDeath()
+    {
+        // Wait 2 seconds (adjust this number to match your death animation length!)
+        yield return new WaitForSeconds(2f);
+
+        // Clear the saved health so they start with 100 HP on their next attempt
+        PlayerPrefs.DeleteKey("SavedHealth");
+        PlayerPrefs.Save();
+
+        // Load the Title Screen (Scene Index 0 in Build Settings)
+        SceneManager.LoadScene(0);
     }
 }

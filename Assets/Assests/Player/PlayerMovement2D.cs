@@ -233,40 +233,40 @@ public class PlayerMovement2D : MonoBehaviour
     // NEW: The complete Hurt Sequence (Replaces ApplyKnockback)
     public IEnumerator HurtSequence(Transform attacker)
     {
-        isKnockedBack = true; // Locks the controls
-        isInvincible = true;  // Grants i-frames
+        isKnockedBack = true;
+        isInvincible = true;
 
-        // 1. Apply the physical pop backwards
+        // Apply knockback
         float knockbackDirection = 1f;
         if (transform.position.x < attacker.position.x)
         {
-            knockbackDirection = -1f; 
+            knockbackDirection = -1f;
         }
         rb.linearVelocity = new Vector2(knockbackForceX * knockbackDirection, knockbackForceY);
 
-        // 2. Start the Flicker loop
+        // NEW: Change color to red to emphasize the hit!
+        spriteRenderer.color = Color.red;
+
         float elapsedTime = 0f;
         while (elapsedTime < iFrameDuration)
         {
-            // Toggle the sprite on and off
             spriteRenderer.enabled = !spriteRenderer.enabled;
-            
-            // Wait for a split second
             yield return new WaitForSeconds(flickerInterval);
             elapsedTime += flickerInterval;
 
-            // 3. Unlock the controls early!
-            // Once the physical stun duration ends, let the player move again (even while they are still flashing)
             if (elapsedTime >= knockbackDuration)
             {
                 isKnockedBack = false;
             }
         }
 
-        // 4. Clean up and restore everything
-        spriteRenderer.enabled = true; // Guarantee they are visible at the end
+        spriteRenderer.enabled = true;
+
+        // NEW: Return the player to their normal color when the flashing ends!
+        spriteRenderer.color = Color.white;
+
         isInvincible = false;
-        isKnockedBack = false; 
+        isKnockedBack = false;
     }
 
     private void UpdateAnimator()
