@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI; 
+using UnityEngine.UI;
 
 public class EnemyHealth : MonoBehaviour
 {
@@ -7,10 +7,13 @@ public class EnemyHealth : MonoBehaviour
     public float maxHealth = 30f;
     private float currentHealth;
 
-    [Header("UI Elements")]
-    public Slider healthSlider; 
+    // --- NEW: The Padlock! ---
+    private bool isDead = false;
 
-    // NEW: Connecting the other components
+    [Header("UI Elements")]
+    public Slider healthSlider;
+
+    // Connecting the other components
     private Animator anim;
     private EnemyPatrol patrolScript;
     private EnemyMelee meleeScript;
@@ -18,7 +21,7 @@ public class EnemyHealth : MonoBehaviour
     void Start()
     {
         currentHealth = maxHealth;
-        
+
         // Grab the components
         anim = GetComponent<Animator>();
         patrolScript = GetComponent<EnemyPatrol>();
@@ -31,9 +34,11 @@ public class EnemyHealth : MonoBehaviour
         }
     }
 
-    // NEW: Added "Transform attacker" so we know which way to fly!
     public void TakeDamage(float damageAmount, Transform attacker = null)
     {
+        // --- NEW: If they are already dead, ignore the hit entirely! ---
+        if (isDead) { return; }
+
         currentHealth -= damageAmount;
         Debug.Log(gameObject.name + " took " + damageAmount + " damage!");
 
@@ -58,7 +63,7 @@ public class EnemyHealth : MonoBehaviour
             if (patrolScript != null && attacker != null)
             {
                 // We MUST stop the patrol's old routines before starting a knockback
-                patrolScript.StopAllCoroutines(); 
+                patrolScript.StopAllCoroutines();
                 StartCoroutine(patrolScript.ApplyKnockback(attacker));
             }
         }
@@ -66,6 +71,9 @@ public class EnemyHealth : MonoBehaviour
 
     private void Die()
     {
+        // --- NEW: Lock the door so they can never die twice! ---
+        isDead = true;
+
         Debug.Log(gameObject.name + " has been defeated!");
 
         // Play the death animation
@@ -75,12 +83,16 @@ public class EnemyHealth : MonoBehaviour
         if (patrolScript != null) patrolScript.enabled = false;
         if (meleeScript != null) meleeScript.enabled = false;
 
+        // Turn off their collider so the player's weapon passes right through their dead body!
+        Collider2D enemyCollider = GetComponent<Collider2D>();
+        if (enemyCollider != null) enemyCollider.enabled = false;
+
         if (UIManager.instance != null)
         {
             UIManager.instance.AddKill();
         }
 
-        // Destroy the body after 2 seconds instead of instantly
+        // Destroy the body after 0.33 seconds
         Destroy(gameObject, 0.33f);
     }
 }

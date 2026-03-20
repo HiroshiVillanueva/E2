@@ -1,9 +1,9 @@
 using UnityEngine;
-using TMPro; // This is required for TextMeshPro!
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
-    // This makes it easy for ANY enemy to find this script without manual linking
     public static UIManager instance;
 
     [Header("UI Text Elements")]
@@ -14,44 +14,53 @@ public class UIManager : MonoBehaviour
     public int targetKills = 6;
     private int currentKills = 0;
 
+    // --- NEW: A public switch to tell the rest of the game the mission is done! ---
+    public bool isMissionComplete = false;
+
     void Awake()
     {
-        // Set up the singleton pattern
-        if (instance == null)
-        {
-            instance = this;
-        }
+        if (instance == null) { instance = this; }
     }
 
     void Start()
     {
-        // Update the text right when the game starts
         UpdateUI();
     }
 
-    // Your enemies will call this method when they die!
     public void AddKill()
     {
         currentKills++;
         UpdateUI();
 
-        // Check if the player won
         if (currentKills >= targetKills)
         {
-            missionText.text = "Mission Complete!";
-            missionText.color = Color.green; // Make it pop!
+            missionText.text = "Mission Complete! Go to the stairs to proceed to the next level!";
+            missionText.color = Color.green;
+
+            // --- NEW: Flip the switch to true! (The wall will be looking for this) ---
+            isMissionComplete = true;
         }
     }
 
     private void UpdateUI()
     {
-        // Keep the mission text updated (unless we already won)
         if (currentKills < targetKills)
         {
             missionText.text = "Mission: Defeat " + targetKills + " Enemies";
         }
-
-        // Update the live kill counter
         killCountText.text = "Kills: " + currentKills + " / " + targetKills;
+    }
+
+    public void RestartLevel()
+    {
+        Time.timeScale = 1f;
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        SceneManager.LoadScene(currentSceneName);
+    }
+
+    public void GoToMainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu");
     }
 }
