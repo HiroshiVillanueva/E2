@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.SceneManagement; // NEW: Required to restart the game!
+using UnityEngine.SceneManagement;
 
 /* * A. Functionality: Manages the player's health, updates the UI slider and text, handles saving/loading health between scenes, and restarts the game on death.
  * B. New component & functionality learned: Learned how to use PlayerPrefs to save health across scenes, and SceneManager to reload the game.
@@ -12,6 +12,10 @@ using UnityEngine.SceneManagement; // NEW: Required to restart the game!
 
 public class PlayerHealth : MonoBehaviour
 {
+    [Header("Level Settings")]
+    [Tooltip("Check this box ONLY in Level 1 so the player always starts with full health!")]
+    public bool isFirstLevel = false;
+
     [Header("Health Settings")]
     public float maxHealth = 100f;
     private float currentHealth;
@@ -30,14 +34,22 @@ public class PlayerHealth : MonoBehaviour
         anim = GetComponent<Animator>();
         movementScript = GetComponent<PlayerMovement2D>();
 
-        // CHECK FOR SAVED HEALTH FROM THE PREVIOUS LEVEL
-        if (PlayerPrefs.HasKey("SavedHealth"))
+        // --- NEW START LOGIC ---
+        if (isFirstLevel == true)
         {
+            // If this is Level 1, force health to MAX and wipe any old saves from previous play sessions!
+            currentHealth = maxHealth;
+            PlayerPrefs.DeleteKey("SavedHealth");
+            PlayerPrefs.Save();
+        }
+        else if (PlayerPrefs.HasKey("SavedHealth"))
+        {
+            // If it's NOT Level 1, and we have saved health, load it!
             currentHealth = PlayerPrefs.GetFloat("SavedHealth");
         }
         else
         {
-            // If there is no saved health (like starting a new game), start at max
+            // Fallback just in case
             currentHealth = maxHealth;
         }
 
@@ -126,7 +138,7 @@ public class PlayerHealth : MonoBehaviour
         StartCoroutine(ReloadGameAfterDeath());
     }
 
-    // NEW: Coroutine to delay the scene load
+    // Coroutine to delay the scene load
     private System.Collections.IEnumerator ReloadGameAfterDeath()
     {
         // Wait 2 seconds (adjust this number to match your death animation length!)

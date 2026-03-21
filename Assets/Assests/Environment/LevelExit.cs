@@ -1,29 +1,60 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Needed to load Level 2!
+using UnityEngine.SceneManagement;
 
 public class LevelExit : MonoBehaviour
 {
     [Header("Level Loading")]
-    public string nextLevelName = "Level 2"; // Type your EXACT Level 2 scene name in the Inspector!
+    [Tooltip("Type the exact name of the scene this door should load next.")]
+    public string nextLevelName;
 
-    // This runs the exact moment something bumps into the wall's collider
+    [Tooltip("Check this box ONLY for the stairs in Level 3 that go to the Ending Scene.")]
+    public bool isFinalLevel = false;
+
+    // 1. THIS HANDLES SOLID WALLS (Like Level 1 & 2)
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // 1. Check if the object that bumped into us is the Player
         if (collision.gameObject.CompareTag("Player"))
         {
-            // 2. Check if the UIManager says the mission is complete
-            if (UIManager.instance != null && UIManager.instance.isMissionComplete == true)
+            TryLoadNextLevel(collision.gameObject);
+        }
+    }
+
+    // 2. --- NEW: THIS HANDLES PASS-THROUGH ZONES (Like Level 3) ---
+    private void OnTriggerEnter2D(Collider2D collider)
+    {
+        if (collider.gameObject.CompareTag("Player"))
+        {
+            TryLoadNextLevel(collider.gameObject);
+        }
+    }
+
+    // 3. The actual logic to change scenes (shared by both methods above)
+    private void TryLoadNextLevel(GameObject playerObject)
+    {
+        if (UIManager.instance != null && UIManager.instance.isMissionComplete == true)
+        {
+            PlayerHealth playerHealth = playerObject.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
             {
-                // Unfreeze time just in case, and load Level 2!
-                Time.timeScale = 1f;
-                SceneManager.LoadScene(nextLevelName);
+                if (isFinalLevel == true)
+                {
+                    // If this is the end of the game, delete the saved health!
+                    PlayerPrefs.DeleteKey("SavedHealth");
+                    PlayerPrefs.Save();
+                }
+                else
+                {
+                    // Normal level transition: save the health!
+                    playerHealth.SaveHealthForNextScene();
+                }
             }
-            else
-            {
-                // Optional: Print a message to the console if they try to leave early
-                Debug.Log("The door is locked! Defeat all enemies first.");
-            }
+
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(nextLevelName);
+        }
+        else
+        {
+            Debug.Log("The exit is locked! Defeat all enemies first.");
         }
     }
 }
