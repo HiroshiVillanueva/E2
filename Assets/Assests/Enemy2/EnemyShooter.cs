@@ -1,151 +1,120 @@
 using UnityEngine;
+using System.Collections;
 
-/* * A. Functionality: Enemy patrols left and right within a set distance. When player is in sight, it stops, faces the player, and shoots. When player leaves, it resumes patrolling.
- * B. New component & functionality learned: Learned how to smoothly switch between a moving Patrol state and a stationary Attack state using Vector2.Distance.
- * C. Problems encountered: Enemy wasn't moving properly due to overly complex logic.
- * D. What you have tried / not tried: Stripped down the logic to directly mirror the working EnemyPatrol script, replacing the Chase logic with Shoot logic.
- * E. Other important developer notes: Ensure patrolSpeed is greater than 0 in the Unity Inspector!
- */
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(EnemyPatrol))]
 public class EnemyShooter : MonoBehaviour
 {
-    [Header("Movement Settings")]
-    public float patrolSpeed = 2f;
-    public float patrolDistance = 5f;
-
     [Header("Targeting Settings")]
     public float sightRange = 8f;
-    private Transform player;
-
+    public float forcedMoveDuration = 1.5f; 
+    
     [Header("Shooting Settings")]
     public GameObject bulletPrefab;
     public Transform firePoint;
-    public float fireRate = 1.5f;
+    public float fireRate = 2f;
+    public float chargeDuration = 0.7f; // NEW: How long they "wind up" before shooting
+
+    [Header("Animation")]
+    public Animator anim; 
 
     private float nextFireTime = 0f;
-    private float startX;
+    private float forcedMoveTimer = 0f;
+    private bool isCharging = false; // NEW: To prevent movement while charging
+    
     private Rigidbody2D rb;
-
-    // We match your working script exactly by using movingRight!
-    private bool movingRight = true;
+    private EnemyPatrol patrolScript;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        startX = transform.position.x;
+        patrolScript = GetComponent<EnemyPatrol>();
+
+        if (anim == null) anim = GetComponent<Animator>();
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-        {
-            player = playerObj.transform;
-        }
+        if (playerObj != null) player = playerObj.transform;
     }
+
+    private Transform player;
 
     void FixedUpdate()
     {
-        // If the player is missing or dead, just keep walking!
-        if (player == null)
-        {
-            Patrol();
-            return;
-        }
+        // Don't do anything if dead, charging, or knocked back
+        if (player == null || patrolScript.isKnockedBack || isCharging) return; 
 
-        // Check how close the player is
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-        if (distanceToPlayer <= sightRange)
+        if (forcedMoveTimer > 0)
         {
-            StopAndShoot();
+            forcedMoveTimer -= Time.fixedDeltaTime;
+            patrolScript.enabled = true;
+        }
+        else if (distanceToPlayer <= sightRange && Time.time >= nextFireTime)
+        {
+            StartCoroutine(ChargeAndShootRoutine());
         }
         else
         {
-            Patrol();
+            patrolScript.enabled = true;
         }
     }
 
-    private void Patrol()
+    private IEnumerator ChargeAndShootRoutine()
     {
-        // 1. Move horizontally (Exact copy of your working script)
-        rb.linearVelocity = new Vector2((movingRight ? patrolSpeed : -patrolSpeed), rb.linearVelocity.y);
-
-        // 2. Turn around if we go too far right
-        if (movingRight && transform.position.x >= startX + patrolDistance)
-        {
-            Flip();
-        }
-        // 3. Turn around if we go too far left
-        else if (!movingRight && transform.position.x <= startX - patrolDistance)
-        {
-            Flip();
-        }
-    }
-
-    private void StopAndShoot()
-    {
-        // 1. Instantly stop walking
+        isCharging = true;
+        patrolScript.enabled = false; // Stop patrol movement
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
 
-        // 2. Face the player's direction
-        float xDifference = player.position.x - transform.position.x;
-        if (xDifference > 0 && !movingRight)
+        // Face the player
+        FacePlayer();
+
+        // 1. Start Charging Animation
+        if (anim != null) anim.SetTrigger("charge"); // Make sure you have a "charge" trigger in Animator
+
+        // 2. Wait for the charging period
+        yield return new WaitForSeconds(chargeDuration);
+
+        // 3. Check if still alive/not knocked back before firing
+        if (!patrolScript.isKnockedBack)
         {
-            Flip();
-        }
-        else if (xDifference < 0 && movingRight)
-        {
-            Flip();
+            FireProjectile();
         }
 
-        // 3. Shoot bullets on a timer
-        if (Time.time >= nextFireTime)
+        // 4. Cleanup
+        nextFireTime = Time.time + fireRate;
+        forcedMoveTimer = forcedMoveDuration;
+        isCharging = false;
+        patrolScript.enabled = true;
+    }
+
+    private void FireProjectile()
+    {
+        if (anim != null) anim.SetTrigger("attack"); // The actual firing animation
+
+        if (bulletPrefab != null && firePoint != null)
         {
-            if (bulletPrefab != null && firePoint != null)
+            GameObject newBullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+            Vector2 shootDirection = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+
+            EnemyProjectile projectileScript = newBullet.GetComponent<EnemyProjectile>();
+            if (projectileScript != null)
             {
-                // Spawn the bullet
-                GameObject newBullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-
-                // Shoot whichever way the enemy is currently facing
-                Vector2 shootDirection = movingRight ? Vector2.right : Vector2.left;
-
-                EnemyProjectile projectileScript = newBullet.GetComponent<EnemyProjectile>();
-                if (projectileScript != null)
-                {
-                    projectileScript.ShootHorizontally(shootDirection);
-                }
+                projectileScript.ShootHorizontally(shootDirection);
             }
-
-            // Reset the firing cooldown
-            nextFireTime = Time.time + fireRate;
         }
     }
 
-    private void Flip()
+    private void FacePlayer()
     {
-        movingRight = !movingRight;
-        Vector3 localScale = transform.localScale;
-        localScale.x *= -1f;
-        transform.localScale = localScale;
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        // Draws the yellow sight range
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, sightRange);
-
-        // Draws the Green Patrol Line exactly like your Enemy1 script!
-        Gizmos.color = Color.green;
-        Vector3 leftPoint = new Vector3(transform.position.x - patrolDistance, transform.position.y, transform.position.z);
-        Vector3 rightPoint = new Vector3(transform.position.x + patrolDistance, transform.position.y, transform.position.z);
-
-        if (Application.isPlaying)
+        float xDifference = player.position.x - transform.position.x;
+        bool playerOnRight = xDifference > 0;
+        
+        if ((playerOnRight && transform.localScale.x < 0) || (!playerOnRight && transform.localScale.x > 0))
         {
-            leftPoint.x = startX - patrolDistance;
-            rightPoint.x = startX + patrolDistance;
+            Vector3 localScale = transform.localScale;
+            localScale.x *= -1f;
+            transform.localScale = localScale;
         }
-
-        Gizmos.DrawLine(leftPoint, rightPoint);
-        Gizmos.DrawSphere(leftPoint, 0.2f);
-        Gizmos.DrawSphere(rightPoint, 0.2f);
     }
 }

@@ -319,9 +319,9 @@ GameObject:
   - component: {fileID: 3607912329995453979}
   - component: {fileID: 213391999617587300}
   - component: {fileID: 2465723478799505778}
-  - component: {fileID: 1629302704531789410}
   - component: {fileID: 394895609158491746}
   - component: {fileID: 3366671884447191502}
+  - component: {fileID: 8214709959496999821}
   m_Layer: 7
   m_Name: Enemy1_0
   m_TagString: Enemy
@@ -500,27 +500,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &1629302704531789410
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8639183265473025250}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3e8e1851231148340a561a1038bc8024, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyPatrol
-  patrolSpeed: 1
-  chaseSpeed: 1.5
-  patrolDistance: 1
-  knockbackForceX: 0.8
-  knockbackForceY: 0.8
-  knockbackDuration: 0.2
-  stopDistance: 0.8
-  sightRange: 1.5
-  isKnockedBack: 0
 --- !u!114 &394895609158491746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -562,6 +541,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHealth: 30
   healthSlider: {fileID: 5332212250532921335}
+--- !u!114 &8214709959496999821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8639183265473025250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8e1851231148340a561a1038bc8024, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyPatrol
+  patrolSpeed: 1
+  chaseSpeed: 1
+  patrolDistance: 12
+  knockbackForceX: 1
+  knockbackForceY: 1
+  knockbackDuration: 0.2
+  stopDistance: 0.8
+  sightRange: 6
+  isKnockedBack: 0
 --- !u!1 &8928353749999913311
 GameObject:
   m_ObjectHideFlags: 0

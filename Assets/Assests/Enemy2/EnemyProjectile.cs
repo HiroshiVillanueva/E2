@@ -39,7 +39,7 @@ public class EnemyProjectile : MonoBehaviour
             }
             Destroy(gameObject); // Destroy bullet on hit
         }
-        else if (collision.CompareTag("Ground"))
+        else if (collision.CompareTag("Walls"))
         {
             Destroy(gameObject); // Destroy bullet if it hits a wall
         }

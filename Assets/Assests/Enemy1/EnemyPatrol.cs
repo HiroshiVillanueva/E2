@@ -26,7 +26,7 @@ public class EnemyPatrol : MonoBehaviour
     private bool movingRight = true;
 
     // NEW: A public switch so the attack and health scripts know we are flying backwards
-    public bool isKnockedBack = false; 
+public bool isKnockedBack = false; 
 
     void Start()
     {

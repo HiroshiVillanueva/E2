@@ -10,19 +10,16 @@ public class EnemyHealth : MonoBehaviour
     [Header("UI Elements")]
     public Slider healthSlider; 
 
-    // NEW: Connecting the other components
     private Animator anim;
     private EnemyPatrol patrolScript;
-    private EnemyMelee meleeScript;
+    private EnemyShooter shooterScript;
 
     void Start()
     {
         currentHealth = maxHealth;
-        
-        // Grab the components
         anim = GetComponent<Animator>();
         patrolScript = GetComponent<EnemyPatrol>();
-        meleeScript = GetComponent<EnemyMelee>();
+        shooterScript = GetComponent<EnemyShooter>();
 
         if (healthSlider != null)
         {
@@ -31,56 +28,47 @@ public class EnemyHealth : MonoBehaviour
         }
     }
 
-    // NEW: Added "Transform attacker" so we know which way to fly!
-    public void TakeDamage(float damageAmount, Transform attacker = null)
+  public void TakeDamage(float damageAmount, Transform attacker = null)
+{
+    currentHealth -= damageAmount;
+
+    if (healthSlider != null) healthSlider.value = currentHealth;
+
+    if (currentHealth <= 0)
     {
-        currentHealth -= damageAmount;
-        Debug.Log(gameObject.name + " took " + damageAmount + " damage!");
+        Die();
+    }
+    else
+    {
+        if (anim != null) anim.SetTrigger("Hurt");
 
-        if (healthSlider != null)
+        // NEW: Stop the charging/shooting routine immediately on hit
+        if (shooterScript != null) 
         {
-            healthSlider.value = currentHealth;
+            shooterScript.StopAllCoroutines(); 
+            // Reset the shooter's internal charging state so they can act again later
+            // Note: You might need to make 'isCharging' public in EnemyShooter for this line:
+            // shooterScript.isCharging = false; 
         }
 
-        if (currentHealth <= 0)
+        if (patrolScript != null && attacker != null)
         {
-            Die();
-        }
-        else
-        {
-            // 1. Play the Flinch Animation
-            if (anim != null) anim.SetTrigger("Hurt");
-
-            // 2. Interrupt their attack! (If they were winding up a punch, cancel it)
-            if (meleeScript != null) meleeScript.StopAllCoroutines();
-
-            // 3. Push them backwards!
-            if (patrolScript != null && attacker != null)
-            {
-                // We MUST stop the patrol's old routines before starting a knockback
-                patrolScript.StopAllCoroutines(); 
-                StartCoroutine(patrolScript.ApplyKnockback(attacker));
-            }
+            patrolScript.enabled = true;
+            patrolScript.StopAllCoroutines(); 
+            StartCoroutine(patrolScript.ApplyKnockback(attacker));
         }
     }
+}
+
+    private void EnableShooter() { if (shooterScript != null) shooterScript.enabled = true; }
 
     private void Die()
     {
-        Debug.Log(gameObject.name + " has been defeated!");
-
-        // Play the death animation
         if (anim != null) anim.SetTrigger("Death");
 
-        // Turn off their brain and legs so they fall to the ground dead
         if (patrolScript != null) patrolScript.enabled = false;
-        if (meleeScript != null) meleeScript.enabled = false;
+        if (shooterScript != null) shooterScript.enabled = false;
 
-        if (UIManager.instance != null)
-        {
-            UIManager.instance.AddKill();
-        }
-
-        // Destroy the body after 2 seconds instead of instantly
         Destroy(gameObject, 0.33f);
     }
 }

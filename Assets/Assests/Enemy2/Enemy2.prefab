@@ -49,7 +49,9 @@ GameObject:
   - component: {fileID: 415714922099732689}
   - component: {fileID: 3343580773232371377}
   - component: {fileID: 2946811790366790528}
-  - component: {fileID: 8685154879331912983}
+  - component: {fileID: 5369571972707877682}
+  - component: {fileID: 1740361041806857516}
+  - component: {fileID: 3596930647124530124}
   m_Layer: 7
   m_Name: Enemy2
   m_TagString: Enemy
@@ -66,8 +68,8 @@ Transform:
   m_GameObject: {fileID: 717722063260600112}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.382, y: 0.366, z: 0}
-  m_LocalScale: {x: 0.2481, y: 0.2865, z: 1}
+  m_LocalPosition: {x: -0.376, y: 0.352, z: 0}
+  m_LocalScale: {x: 0.8, y: 0.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1754928099407797031}
@@ -123,9 +125,9 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 3
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_Sprite: {fileID: 7723652632321733531, guid: fb42e4b09b7d7e243954b51861beb1fb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
+  m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 1, y: 1}
@@ -148,14 +150,14 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 0
+  m_GravityScale: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
@@ -176,7 +178,7 @@ BoxCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 136
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -198,13 +200,13 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
+    oldSize: {x: 0.48, y: 0.48}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.6, y: 0.48}
   m_EdgeRadius: 0
 --- !u!114 &2946811790366790528
 MonoBehaviour:
@@ -218,13 +220,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33cb75eb39a4ea24ab2b0bc14d118d2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyShooter
-  patrolSpeed: 0.5
-  patrolDistance: 1
   sightRange: 1.4
-  bulletPrefab: {fileID: 9134429952802846509, guid: 8003b88d934a91b4d8453dd9cefd9cd5, type: 3}
+  forcedMoveDuration: 1.5
+  bulletPrefab: {fileID: 72757275619423281, guid: 3f10cc279528437468ce6c82fcbf0b0e, type: 3}
   firePoint: {fileID: 1754928099407797031}
-  fireRate: 2
---- !u!114 &8685154879331912983
+  fireRate: 3.5
+  chargeDuration: 0.75
+  anim: {fileID: 0}
+--- !u!114 &5369571972707877682
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -238,6 +241,49 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHealth: 30
   healthSlider: {fileID: 674655542184689409}
+--- !u!95 &1740361041806857516
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717722063260600112}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: f04dff000939784439c12e8b17377a5b, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &3596930647124530124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717722063260600112}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8e1851231148340a561a1038bc8024, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyPatrol
+  patrolSpeed: 0.6
+  chaseSpeed: 0.6
+  patrolDistance: 8
+  knockbackForceX: 1
+  knockbackForceY: 1
+  knockbackDuration: 0.2
+  stopDistance: 0.8
+  sightRange: 6
+  isKnockedBack: 0
 --- !u!1 &5250450723265159509
 GameObject:
   m_ObjectHideFlags: 0
@@ -263,7 +309,7 @@ Transform:
   m_GameObject: {fileID: 5250450723265159509}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.623, y: 0, z: 0}
+  m_LocalPosition: {x: -0.11, y: -0.1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -481,8 +527,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 6.6, y: -5}
-  m_SizeDelta: {x: 200, y: 40}
+  m_AnchoredPosition: {x: 7.5, y: -46.8}
+  m_SizeDelta: {x: 129.17, y: 25.83}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &674655542184689409
 MonoBehaviour:
