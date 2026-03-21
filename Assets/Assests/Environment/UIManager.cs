@@ -34,10 +34,23 @@ public class UIManager : MonoBehaviour
 
         if (currentKills >= targetKills)
         {
-            missionText.text = "Mission Complete! Go to the stairs to proceed to the next level!";
+            // --- NEW: Check which level we are currently in! ---
+            string currentScene = SceneManager.GetActiveScene().name;
+
+            // IMPORTANT: Make sure "Level 3" perfectly matches your scene file name
+            if (currentScene == "Level 3")
+            {
+                missionText.text = "Mission Complete! Proceed to the door to go inside!";
+            }
+            else
+            {
+                missionText.text = "Mission Complete! Go to the stairs to proceed to the next level!";
+            }
+            // ---------------------------------------------------
+
             missionText.color = Color.green;
 
-            // --- NEW: Flip the switch to true! (The wall will be looking for this) ---
+            // Flip the switch to true! (The wall/door will be looking for this)
             isMissionComplete = true;
         }
     }
@@ -54,13 +67,23 @@ public class UIManager : MonoBehaviour
     public void RestartLevel()
     {
         Time.timeScale = 1f;
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        SceneManager.LoadScene(currentSceneName);
+
+        // Erase the saved health so you start Level 1 at full health!
+        PlayerPrefs.DeleteKey("SavedHealth");
+        PlayerPrefs.Save();
+
+        // Hard-code this to your exact Level 1 scene name!
+        SceneManager.LoadScene("Level 1");
     }
 
     public void GoToMainMenu()
     {
         Time.timeScale = 1f;
+
+        // Erase the saved health here too, just in case!
+        PlayerPrefs.DeleteKey("SavedHealth");
+        PlayerPrefs.Save();
+
         SceneManager.LoadScene("MainMenu");
     }
 }

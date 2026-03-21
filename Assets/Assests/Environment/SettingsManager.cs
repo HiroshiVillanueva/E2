@@ -66,21 +66,25 @@ public class SettingsManager : MonoBehaviour
     }
     public void RestartLevel()
     {
-        // 1. UNFREEZE TIME! (Crucial if restarting from a Pause menu)
         Time.timeScale = 1f;
 
-        // 2. Find the name of the level we are currently in, and reload it
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        SceneManager.LoadScene(currentSceneName);
+        // --- NEW: Erase the saved health so you start Level 1 at full health! ---
+        PlayerPrefs.DeleteKey("SavedHealth");
+        PlayerPrefs.Save();
+
+        // --- NEW: Hard-code this to your exact Level 1 scene name! ---
+        // IMPORTANT: Change "Level1" to whatever your first level's scene file is named.
+        SceneManager.LoadScene("Level 1");
     }
 
     public void GoToMainMenu()
     {
-        // 1. UNFREEZE TIME! (Crucial so your Main Menu animations don't freeze)
         Time.timeScale = 1f;
 
-        // 2. Load the Main Menu scene 
-        // IMPORTANT: Change "Scene1_MainMenu" to the exact spelling of your scene file!
+        // --- NEW: Erase the saved health here too, just in case! ---
+        PlayerPrefs.DeleteKey("SavedHealth");
+        PlayerPrefs.Save();
+
         SceneManager.LoadScene("MainMenu");
     }
 }
