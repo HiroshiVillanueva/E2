@@ -12,9 +12,9 @@ public class PlayerMovement2D : MonoBehaviour
     [Header("Hurt & Knockback Settings")]
     public float knockbackForceX = 5f;
     public float knockbackForceY = 5f;
-    public float knockbackDuration = 0.2f; // How long inputs are locked
-    public float iFrameDuration = 1.5f; // NEW: How long they are invincible/flickering
-    public float flickerInterval = 0.1f; // NEW: How fast they flash
+    public float knockbackDuration = 0.2f; 
+    public float iFrameDuration = 1.5f; 
+    public float flickerInterval = 0.1f; 
 
     [Header("Roll Settings")]
     public float rollForce = 15f;
@@ -36,9 +36,23 @@ public class PlayerMovement2D : MonoBehaviour
     public float punch1Damage = 10f;
     public float punch2Damage = 30f;
 
+    [Header("Hit Meter (Visual Bar)")]
+    public Slider hitMeterBar;         
+    public float maxHitPoints = 100f;  
+    public float pointsPerHit = 10f;   
+    public float decayRate = 5f;       
+    public float decayDelay = 2f;      
+
+    [Header("Special Abilities")]
+    public float healAmount = 25f;
+    public float healMeterCost = 5f;
+    public float healGlowDuration = 0.5f; // How long the green glow lasts
+    public Color healGlowColor = Color.green;
+
     [Header("Audio Settings")]
     public AudioClip punchMissSound;
     public AudioClip punchHitSound;
+    public AudioClip healSound; // Assign this in the Inspector
 
     [Header("UI Elements")]
     public Image cooldownIndicator;
@@ -58,7 +72,7 @@ public class PlayerMovement2D : MonoBehaviour
 
     public bool isRolling = false;
     public bool isKnockedBack = false;
-    public bool isInvincible = false; // NEW: The i-frame safety switch!
+    public bool isInvincible = false; 
 
     private bool canRoll = true;
     private bool isAttacking = false;
@@ -66,16 +80,34 @@ public class PlayerMovement2D : MonoBehaviour
     private int comboStep = 1;
     private float lastAttackTime = 0f;
 
+    private float currentHitPoints = 0f;
+    private float lastHitTimestamp = 0f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        if (hitMeterBar != null)
+        {
+            hitMeterBar.maxValue = maxHitPoints;
+            hitMeterBar.value = 0;
+        }
     }
 
     void Update()
     {
-        // Inputs remain locked during the knockback stun!
+        HandleHitMeterDecay();
+        UpdateUI();
+
+        // Check for Heal Ability (E Key)
+        if (Input.GetKeyDown(KeyCode.E) && currentHitPoints >= healMeterCost)
+        {
+            StartCoroutine(PerformHeal());
+        }
+
+        // INPUT LOCK: Movement and Attack are disabled if these are true
         if (isKnockedBack || isRolling || isAttacking) return;
 
         horizontalInput = Input.GetAxisRaw("Horizontal");
@@ -103,6 +135,32 @@ public class PlayerMovement2D : MonoBehaviour
         UpdateAnimator();
     }
 
+    private IEnumerator PerformHeal()
+    {
+        currentHitPoints -= healMeterCost;
+        isInvincible = true; // Turn on I-Frames
+
+        // Visual Feedback
+        spriteRenderer.color = healGlowColor;
+        
+        // Audio Feedback
+        if (healSound != null) PlayFastSound(healSound);
+
+        // Logic to increase health
+        var healthScript = GetComponent<PlayerHealth>(); 
+        if (healthScript != null)
+        {
+            healthScript.Heal(healAmount);
+        }
+
+        // Wait for the glow/invincibility to finish
+        yield return new WaitForSeconds(healGlowDuration);
+
+        // Reset
+        spriteRenderer.color = Color.white;
+        isInvincible = false;
+    }
+
     void FixedUpdate()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
@@ -117,6 +175,23 @@ public class PlayerMovement2D : MonoBehaviour
             {
                 rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
             }
+        }
+    }
+
+    private void HandleHitMeterDecay()
+    {
+        if (Time.time > lastHitTimestamp + decayDelay && currentHitPoints > 0)
+        {
+            currentHitPoints -= decayRate * Time.deltaTime;
+            currentHitPoints = Mathf.Max(currentHitPoints, 0); 
+        }
+    }
+
+    private void UpdateUI()
+    {
+        if (hitMeterBar != null)
+        {
+            hitMeterBar.value = currentHitPoints;
         }
     }
 
@@ -180,6 +255,10 @@ public class PlayerMovement2D : MonoBehaviour
         if (hitEnemies.Length > 0)
         {
             PlayFastSound(punchHitSound); 
+            currentHitPoints += pointsPerHit;
+            currentHitPoints = Mathf.Min(currentHitPoints, maxHitPoints); 
+            lastHitTimestamp = Time.time; 
+
             foreach (Collider2D enemy in hitEnemies)
             {
                 var enemyHealth = enemy.GetComponent<EnemyHealth>();
@@ -230,21 +309,16 @@ public class PlayerMovement2D : MonoBehaviour
         canRoll = true;
     }
 
-    // NEW: The complete Hurt Sequence (Replaces ApplyKnockback)
     public IEnumerator HurtSequence(Transform attacker)
     {
+        if (isInvincible) yield break; // If healing or rolling, don't get hurt
+
         isKnockedBack = true;
         isInvincible = true;
 
-        // Apply knockback
-        float knockbackDirection = 1f;
-        if (transform.position.x < attacker.position.x)
-        {
-            knockbackDirection = -1f;
-        }
+        float knockbackDirection = transform.position.x < attacker.position.x ? -1f : 1f;
         rb.linearVelocity = new Vector2(knockbackForceX * knockbackDirection, knockbackForceY);
 
-        // NEW: Change color to red to emphasize the hit!
         spriteRenderer.color = Color.red;
 
         float elapsedTime = 0f;
@@ -261,10 +335,7 @@ public class PlayerMovement2D : MonoBehaviour
         }
 
         spriteRenderer.enabled = true;
-
-        // NEW: Return the player to their normal color when the flashing ends!
         spriteRenderer.color = Color.white;
-
         isInvincible = false;
         isKnockedBack = false;
     }
@@ -303,7 +374,7 @@ public class PlayerMovement2D : MonoBehaviour
     {
         if (clip == null) return;
 
-        GameObject tempAudio = new GameObject("FastPunchSound");
+        GameObject tempAudio = new GameObject("FastSoundEffect");
         tempAudio.transform.position = Camera.main.transform.position;
 
         AudioSource source = tempAudio.AddComponent<AudioSource>();
