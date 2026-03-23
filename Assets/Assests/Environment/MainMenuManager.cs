@@ -9,17 +9,14 @@ using UnityEngine.SceneManagement;
  */
 public class MainMenuManager : MonoBehaviour
 {
-    // 1. Connect to your PLAY button
     public void PlayGame()
     {
-        SceneManager.LoadScene("Level 1"); // Make sure this is in Build Settings!
+        SceneManager.LoadScene("Level 1"); 
     }
 
     // 2. Connect to your OPTIONS button
     public void OpenOptions()
     {
-        // Drop the breadcrumb saying we came from the MainMenu!
-        // (Make sure "MainMenu" is the exact spelling of your Scene 1 file)
         PlayerPrefs.SetString("ReturnScene", "MainMenu");
 
         SceneManager.LoadScene("Game Setting");
