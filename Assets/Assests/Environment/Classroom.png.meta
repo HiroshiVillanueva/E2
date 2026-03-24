@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: f36bf9f88fb61f947beda52992588425
+guid: 16269329e8d229740a235b0cc2f1ee87
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6431824521259115633
-    second: GameSettingsBckground_0
+      213: 6081253000217835118
+    second: Classroom_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -48,7 +48,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 0
+  spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: GameSettingsBckground_0
+      name: Classroom_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1376
-        height: 689
+        width: 2390
+        height: 1792
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 174eb47235e624950800000000000000
-      internalID: 6431824521259115633
+      spriteID: e6633434263f46450800000000000000
+      internalID: 6081253000217835118
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      GameSettingsBckground_0: 6431824521259115633
+      Classroom_0: 6081253000217835118
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
